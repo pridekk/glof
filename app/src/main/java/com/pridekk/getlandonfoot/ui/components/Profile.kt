@@ -12,11 +12,18 @@ import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun Profile(navController: NavController){
+fun Profile(
+    navController: NavController,
+    logout: () -> Unit,
+
+){
     Column() {
         Text(text = "Profile")
         Spacer(modifier = Modifier.width(5.dp))
-        Button(onClick = { FirebaseAuth.getInstance().signOut() }) {
+        Button(onClick = {
+            logout()
+        }
+        ) {
             Text(text = "로그아웃")
 
         }
