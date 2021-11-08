@@ -48,20 +48,23 @@ class MainViewModel @Inject constructor(
         } else {
             _loginUiState.value = LoginUiState.Loading
 
-            mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
-               if (task.isSuccessful) {
-                   // Sign in success, update UI with the signed-in user's information
-                   Timber.d("createUserWithEmail:success")
-                   val user = mAuth.currentUser
-                   if(user != null){
-                       _loginUiState.value = LoginUiState.Success
-                   }
-               } else {
-                   // If sign in fails, display a message to the user.
-                   Timber.d("createUserWithEmail:failure", task.exception)
-                   _loginUiState.value = LoginUiState.Error(task.exception.toString())
+            val task = mAuth.signInWithEmailAndPassword(email, password)
+            if (task.isSuccessful) {
+               // Sign in success, update UI with the signed-in user's information
+               Timber.d("createUserWithEmail:success")
+               val user = mAuth.currentUser
+               if(user != null){
+                   val task = user.getIdToken(true)
+                   val idToken: String? = task.result.token
+                   Timber.d("idToken ${idToken}")
+                   _loginUiState.value = LoginUiState.Success
                }
-           }
+            } else {
+               // If sign in fails, display a message to the user.
+               Timber.d("createUserWithEmail:failure", task.exception)
+               _loginUiState.value = LoginUiState.Error(task.exception.toString())
+            }
+
 
         }
         val response = repository.getOrderDay("2021-10-12")
