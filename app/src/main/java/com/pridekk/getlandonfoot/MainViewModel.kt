@@ -28,6 +28,13 @@ class MainViewModel @Inject constructor(
         val user = mAuth.currentUser
         if(user != null){
             _loginUiState.value = LoginUiState.Success
+            val task = user.getIdToken(true)
+            if (task.isSuccessful) {
+                val idToken: String? = task.result.token
+                Timber.d("idToken ${idToken}")
+            } else {
+                // Handle error -> task.getException();
+            }
         }
 
     }
