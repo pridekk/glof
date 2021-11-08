@@ -1,29 +1,24 @@
 package com.pridekk.getlandonfoot
 
 
-import android.widget.Toast
+import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
+import com.pridekk.getlandonfoot.repository.SpecRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import com.google.firebase.auth.GetTokenResult
+import javax.inject.Inject
 
-import androidx.annotation.NonNull
-
-
-import com.google.firebase.auth.FirebaseUser
-
-
-
-
-
+@HiltViewModel
 @ExperimentalCoroutinesApi
-class MainViewModel: ViewModel() {
+class MainViewModel @Inject constructor(
+    private val repository: SpecRepository
+): ViewModel(), LifecycleObserver {
 
     private var mAuth = FirebaseAuth.getInstance()
     private val _loginUiState = MutableStateFlow<LoginUiState>(LoginUiState.Empty)
@@ -34,6 +29,7 @@ class MainViewModel: ViewModel() {
         if(user != null){
             _loginUiState.value = LoginUiState.Success
         }
+
     }
 
     fun login(email:String, password:String) = viewModelScope.launch {
@@ -66,7 +62,11 @@ class MainViewModel: ViewModel() {
                    _loginUiState.value = LoginUiState.Error(task.exception.toString())
                }
            }
+
         }
+        val response = repository.getOrderDay("2021-10-12")
+
+        response.data
     }
 
     fun logout() = viewModelScope.launch {

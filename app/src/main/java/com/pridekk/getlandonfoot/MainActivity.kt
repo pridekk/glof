@@ -10,15 +10,16 @@ import androidx.lifecycle.lifecycleScope
 import com.pridekk.getlandonfoot.ui.components.Login
 import com.pridekk.getlandonfoot.ui.components.Navigation
 import com.pridekk.getlandonfoot.ui.theme.GetLandOnFootTheme
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 
+@AndroidEntryPoint
 @ExperimentalCoroutinesApi
 class MainActivity : ComponentActivity(){
 
-    private val viewModel: MainViewModel by viewModels()
+    private val viewModel by viewModels<MainViewModel>()
 
-    @ExperimentalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
