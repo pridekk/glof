@@ -16,6 +16,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.pridekk.getlandonfoot.Screen
+import com.pridekk.getlandonfoot.ui.viewmodels.ProfileViewModel
 
 @Composable
 fun Navigation(

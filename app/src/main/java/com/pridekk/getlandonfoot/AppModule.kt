@@ -1,5 +1,6 @@
 package com.pridekk.getlandonfoot
 
+import com.google.firebase.auth.FirebaseAuth
 import com.pridekk.getlandonfoot.data.remote.GlofApi
 import com.pridekk.getlandonfoot.data.remote.SpecApi
 import com.pridekk.getlandonfoot.repository.GlofRepository
@@ -49,4 +50,8 @@ object AppModule {
             .build()
             .create(GlofApi::class.java)
     }
+
+    @Singleton
+    @Provides
+    fun provideFirebaseAuth() =  FirebaseAuth.getInstance()
 }

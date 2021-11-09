@@ -1,6 +1,7 @@
 package com.pridekk.getlandonfoot
 
 
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,10 +10,13 @@ import com.pridekk.getlandonfoot.repository.GlofRepository
 import com.pridekk.getlandonfoot.repository.SpecRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.lang.Exception
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,6 +33,9 @@ class MainViewModel @Inject constructor(
     private val _token = MutableStateFlow("")
     val token: StateFlow<String> get() = _token
 
+    private val _error = MutableStateFlow<String>("")
+    val error: StateFlow<String> get() = _error
+
     init {
         val user = mAuth.currentUser
         if(user != null){
@@ -40,12 +47,10 @@ class MainViewModel @Inject constructor(
                     _token.value = task.result.token.toString()
 
                     val result = glofRepository.getArea(token.value)
-                    result.data
+                    Timber.d(result.data?.message)
 
                 } else {
-                    // Handle error -> task.getException();
-                    val test: String = ""
-
+                    Timber.d("Logged in user getIdToken Failed")
                 }
             }
         }
@@ -58,46 +63,56 @@ class MainViewModel @Inject constructor(
         if(user != null){
            _loginUiState.value = LoginUiState.Success
 
-           val task = user.getIdToken(false)
-            if (task.isSuccessful) {
-                idToken = task.result.token
-                _token.value = task.result.token.toString()
-                Timber.d("idToken ${idToken}")
-            } else {
-                // Handle error -> task.getException();
-            }
+           user.getIdToken(true).let { task ->
+               if (task.isSuccessful) {
+                   idToken = task.result.token
+                   _token.value = task.result.token.toString()
+                   Timber.d("1idToken ${idToken}")
+                   idToken?.let {
+                       val result = glofRepository.getArea(it)
+                       Timber.d(result.message)
+                   }
+
+               } else {
+                   Timber.d("New Log in user getIdToken Failed")
+               }
+           }
 
         } else {
             _loginUiState.value = LoginUiState.Loading
+            val task = mAuth.signInWithEmailAndPassword(email,password)
+            task.addOnCompleteListener {
+                if (it.isSuccessful) {
+                    // Sign in success, update UI with the signed-in user's information
+                    Timber.d("loginUserWithEmail:success")
+                    _loginUiState.value = LoginUiState.Success
+                } else {
+                    // If sign in fails, display a message to the user.
+                    Timber.d("loginUserWithEmail:failure", it.exception)
+                    _loginUiState.value = LoginUiState.Error(it.exception.toString())
 
-            val task = mAuth.signInWithEmailAndPassword(email, password)
-            if (task.isSuccessful) {
-               // Sign in success, update UI with the signed-in user's information
-               Timber.d("createUserWithEmail:success")
-               val user = mAuth.currentUser
-               if(user != null){
-                   val task = user.getIdToken(true)
-                   idToken = task.result.token
-                   Timber.d("idToken ${idToken}")
-                   _loginUiState.value = LoginUiState.Success
-               }
-            } else {
-               // If sign in fails, display a message to the user.
-               Timber.d("createUserWithEmail:failure", task.exception)
-               _loginUiState.value = LoginUiState.Error(task.exception.toString())
+                }
             }
 
 
+
+
+
         }
-        val response = repository.getOrderDay("2021-10-12")
-        val res2 = idToken?.let { glofRepository.getArea(idToken) }
-        res2?.data
-//        response.data
     }
 
     fun logout() = viewModelScope.launch {
         mAuth.signOut()
         _loginUiState.value = LoginUiState.Empty
+    }
+
+
+    private fun handleError(exception: Throwable){
+        _error.value = exception.message.toString()
+    }
+
+    fun setLoginUiState(loginState: MainViewModel.LoginUiState) {
+        _loginUiState.value = loginState
     }
 
     sealed class LoginUiState {

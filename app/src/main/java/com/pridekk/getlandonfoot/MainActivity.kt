@@ -7,9 +7,11 @@ import androidx.activity.viewModels
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.lifecycle.lifecycleScope
+import com.pridekk.getlandonfoot.MainViewModel.LoginUiState.Error
 import com.pridekk.getlandonfoot.ui.components.Login
 import com.pridekk.getlandonfoot.ui.components.Navigation
 import com.pridekk.getlandonfoot.ui.theme.GetLandOnFootTheme
+import com.pridekk.getlandonfoot.ui.viewmodels.ProfileViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
@@ -36,19 +38,23 @@ class MainActivity : ComponentActivity(){
                             }
                         }
                     }
-                    is MainViewModel.LoginUiState.Empty -> {
+                    is MainViewModel.LoginUiState.Empty, is Error -> {
                         setContent {
                             GetLandOnFootTheme {
                                 Surface(color = MaterialTheme.colors.background) {
-                                    Login(viewModel::login)
+                                    Login(viewModel::login,viewModel)
                                 }
                             }
                         }
                     }
+
                 }
             }
         }
+
     }
+
+
 
 }
 
