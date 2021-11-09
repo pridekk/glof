@@ -5,6 +5,7 @@ import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.pridekk.getlandonfoot.repository.GlofRepository
 import com.pridekk.getlandonfoot.repository.SpecRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -17,12 +18,16 @@ import javax.inject.Inject
 @HiltViewModel
 @ExperimentalCoroutinesApi
 class MainViewModel @Inject constructor(
-    private val repository: SpecRepository
+    private val repository: SpecRepository,
+    private val glofRepository: GlofRepository
 ): ViewModel(), LifecycleObserver {
 
     private var mAuth = FirebaseAuth.getInstance()
     private val _loginUiState = MutableStateFlow<LoginUiState>(LoginUiState.Empty)
     val loginUiState: StateFlow<LoginUiState> get() = _loginUiState
+
+    private val _token = MutableStateFlow("")
+    val token: StateFlow<String> get() = _token
 
     init {
         val user = mAuth.currentUser
@@ -30,8 +35,7 @@ class MainViewModel @Inject constructor(
             _loginUiState.value = LoginUiState.Success
             val task = user.getIdToken(true)
             if (task.isSuccessful) {
-                val idToken: String? = task.result.token
-                Timber.d("idToken ${idToken}")
+                _token.value = task.result.token.toString()
             } else {
                 // Handle error -> task.getException();
             }
@@ -41,12 +45,14 @@ class MainViewModel @Inject constructor(
 
     fun login(email:String, password:String) = viewModelScope.launch {
         val user = mAuth.currentUser
+        var idToken: String? = null
         if(user != null){
            _loginUiState.value = LoginUiState.Success
 
            val task = user.getIdToken(true)
             if (task.isSuccessful) {
-                val idToken: String? = task.result.token
+                idToken = task.result.token
+                _token.value = task.result.token.toString()
                 Timber.d("idToken ${idToken}")
             } else {
                 // Handle error -> task.getException();
@@ -62,7 +68,7 @@ class MainViewModel @Inject constructor(
                val user = mAuth.currentUser
                if(user != null){
                    val task = user.getIdToken(true)
-                   val idToken: String? = task.result.token
+                   idToken = task.result.token
                    Timber.d("idToken ${idToken}")
                    _loginUiState.value = LoginUiState.Success
                }
@@ -75,8 +81,9 @@ class MainViewModel @Inject constructor(
 
         }
         val response = repository.getOrderDay("2021-10-12")
-
-        response.data
+        val res2 = idToken?.let { glofRepository.getArea(idToken) }
+        res2?.data
+//        response.data
     }
 
     fun logout() = viewModelScope.launch {
