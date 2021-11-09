@@ -33,11 +33,20 @@ class MainViewModel @Inject constructor(
         val user = mAuth.currentUser
         if(user != null){
             _loginUiState.value = LoginUiState.Success
-            val task = user.getIdToken(true)
-            if (task.isSuccessful) {
-                _token.value = task.result.token.toString()
-            } else {
-                // Handle error -> task.getException();
+            viewModelScope.launch {
+
+                val task = user.getIdToken(false)
+                if (task.isSuccessful) {
+                    _token.value = task.result.token.toString()
+
+                    val result = glofRepository.getArea(token.value)
+                    result.data
+
+                } else {
+                    // Handle error -> task.getException();
+                    val test: String = ""
+
+                }
             }
         }
 
@@ -49,7 +58,7 @@ class MainViewModel @Inject constructor(
         if(user != null){
            _loginUiState.value = LoginUiState.Success
 
-           val task = user.getIdToken(true)
+           val task = user.getIdToken(false)
             if (task.isSuccessful) {
                 idToken = task.result.token
                 _token.value = task.result.token.toString()
