@@ -80,7 +80,7 @@ fun Navigation(
                 Profile(navController = navController, logout)
             }
             composable(Screen.Map.route){
-                MyMap(navController = navController, fusedLocationClient){ googleMap ->
+                MyMap(){ googleMap ->
                     val sydney = LatLng(-33.852, 151.211)
                     googleMap.addMarker(
                         MarkerOptions()

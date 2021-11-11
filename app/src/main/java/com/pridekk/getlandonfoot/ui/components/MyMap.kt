@@ -7,11 +7,15 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Card
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
@@ -26,51 +30,31 @@ import java.lang.IllegalStateException
 @ExperimentalPermissionsApi
 @Composable
 fun MyMap(
-    navController: NavController,
-    fusedLocationClient: FusedLocationProviderClient,
-    modifier: Modifier = Modifier,
-    onReady: (GoogleMap) -> Unit,
-
+    onReady: (GoogleMap) -> Unit
 ){
     val context = LocalContext.current
 
-//    val mapView = remember {
-//        MapView(context)
-//    }
+    val mapView = remember {
+        MapView(context)
+    }
 
     val lifecycle = LocalLifecycleOwner.current.lifecycle
 
+    lifecycle.addObserver(rememberMapLifecycle(map = mapView))
 
-    val multiplePermissionsState = rememberMultiplePermissionsState(
-        getRequiredPermissions()
+
+
+    AndroidView(
+        factory = {
+            mapView.apply {
+                mapView.getMapAsync { googleMap ->
+                    onReady(googleMap)
+                }
+            }
+        },
+        Modifier.fillMaxWidth().fillMaxHeight(0.8f)
     )
 
-//    lifecycle.addObserver(rememberMapLifecycle(map = mapView))
-
-    Column(){
-//        AndroidView(
-//            factory = {
-//                mapView.apply {
-//                    mapView.getMapAsync { googleMap ->
-//                        onReady(googleMap)
-//                    }
-//                }
-//            }
-//        )
-        PermissionsRequest(
-            multiplePermissionsState,
-            fusedLocationClient,
-            navigateToSettingsScreen = {
-                context.startActivity(
-                    Intent(
-                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                        Uri.fromParts("package", context.packageName, null)
-                    )
-                )
-            }
-        )
-
-    }
 
 
 }
@@ -81,10 +65,19 @@ fun rememberMapLifecycle(map:MapView): LifecycleEventObserver {
         LifecycleEventObserver { source, event ->
             when(event){
                 Lifecycle.Event.ON_CREATE ->  map.onCreate(Bundle())
-                Lifecycle.Event.ON_START ->  map.onStart()
+                Lifecycle.Event.ON_START ->  {
+                    Timber.d("Map onStart")
+                    map.onStart()
+                }
                 Lifecycle.Event.ON_RESUME ->  map.onResume()
-                Lifecycle.Event.ON_PAUSE ->  map.onPause()
-                Lifecycle.Event.ON_DESTROY ->  map.onDestroy()
+                Lifecycle.Event.ON_PAUSE ->  {
+                    Timber.d("Map onPause")
+                    map.onPause()
+                }
+                Lifecycle.Event.ON_DESTROY ->  {
+                    Timber.d("Map onDestroy")
+                    map.onDestroy()
+                }
                 Lifecycle.Event.ON_ANY ->  throw IllegalStateException()
 
             }
@@ -93,16 +86,4 @@ fun rememberMapLifecycle(map:MapView): LifecycleEventObserver {
     }
 }
 
-fun getRequiredPermissions(): List<String>{
-    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
-        return listOf(
-            android.Manifest.permission.ACCESS_COARSE_LOCATION,
-            android.Manifest.permission.ACCESS_FINE_LOCATION,
-            android.Manifest.permission.ACCESS_BACKGROUND_LOCATION
-        )
-    }
-    return listOf(
-        android.Manifest.permission.ACCESS_COARSE_LOCATION,
-        android.Manifest.permission.ACCESS_FINE_LOCATION
-    )
-}
+

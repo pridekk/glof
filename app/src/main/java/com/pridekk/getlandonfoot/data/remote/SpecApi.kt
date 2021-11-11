@@ -10,4 +10,6 @@ interface SpecApi {
     suspend fun getOrderDay(
         @Query("date") date: String
     ): BizDay
+
+
 }

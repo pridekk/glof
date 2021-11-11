@@ -38,7 +38,7 @@ object ServiceModule {
         .setAutoCancel(false)
         .setOngoing(true)
         .setSmallIcon(R.drawable.ic_directions_run_black_24dp)
-        .setContentTitle("Running App")
+        .setContentTitle("GLOF")
         .setContentText("00:00:00")
         .setContentIntent(pendingIntent)
 

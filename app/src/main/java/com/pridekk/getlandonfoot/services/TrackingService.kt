@@ -2,7 +2,6 @@ package com.pridekk.getlandonfoot.services
 
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.NotificationManager.IMPORTANCE_LOW
@@ -19,7 +18,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.observe
+import androidx.lifecycle.lifecycleScope
 
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -28,6 +27,8 @@ import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.maps.model.LatLng
 import com.pridekk.getlandonfoot.R
+import com.pridekk.getlandonfoot.data.remote.requests.MyLocation
+import com.pridekk.getlandonfoot.repository.GlofRepository
 import com.pridekk.getlandonfoot.utils.Constants
 import com.pridekk.getlandonfoot.utils.Constants.ACTION_PAUSE_SERVICE
 import com.pridekk.getlandonfoot.utils.Constants.ACTION_START_OR_RESUME_SERVICE
@@ -53,6 +54,7 @@ class TrackingService : LifecycleService() {
 
     private val timeRunInSeconds = MutableLiveData<Long>()
 
+    private val token = MutableLiveData<String>()
     private var isFirstRun = true
     private var serviceKilled = false
 
@@ -76,6 +78,9 @@ class TrackingService : LifecycleService() {
     @Inject
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
+    @Inject
+    lateinit var glofRepository: GlofRepository
+
     override fun onCreate() {
         super.onCreate()
         curNotification = baseNotificationBuilder
@@ -97,8 +102,13 @@ class TrackingService : LifecycleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Timber.d("onStartCommend")
         intent?.let {
+            it.getStringExtra("TOKEN")?.let { userToken ->
+                token.postValue(userToken)
+            }
+
             when (it.action) {
                 ACTION_START_OR_RESUME_SERVICE -> {
+
                     if (isFirstRun) {
                         startForegroundService()
                         isFirstRun = false
@@ -106,6 +116,7 @@ class TrackingService : LifecycleService() {
                     } else {
                         startTimer()
                     }
+
                 }
                 ACTION_PAUSE_SERVICE -> {
                     Timber.d("Paused Service")
@@ -159,7 +170,8 @@ class TrackingService : LifecycleService() {
                 //                                          int[] grantResults)
                 // to handle the case where the user grants the permission. See the documentation
                 // for ActivityCompat#requestPermissions for more details.
-                return
+                Timber.d("Location Permission denied")
+                    return
             }
             fusedLocationProviderClient.requestLocationUpdates(
                 request,
@@ -177,11 +189,21 @@ class TrackingService : LifecycleService() {
      */
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult?) {
+            Timber.d("location added")
             super.onLocationResult(result)
             if (isTracking.value!!) {
                 result?.locations?.let { locations ->
                     for (location in locations) {
+
                         addPathPoint(location)
+                        Timber.d("token: ${token.value}")
+
+                    }
+                    val requestBody = locations.map { it -> MyLocation(it.latitude, it.longitude, it.speed) }
+                    token.value?.let {
+                        lifecycleScope.launch {
+                            glofRepository.postLocations(it, requestBody)
+                        }
                     }
                 }
             }

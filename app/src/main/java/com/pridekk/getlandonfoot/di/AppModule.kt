@@ -1,4 +1,4 @@
-package com.pridekk.getlandonfoot
+package com.pridekk.getlandonfoot.di
 
 import com.google.firebase.auth.FirebaseAuth
 import com.pridekk.getlandonfoot.data.remote.GlofApi
