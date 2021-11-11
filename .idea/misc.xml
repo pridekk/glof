@@ -4,6 +4,8 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/AndroidProjects/GetLandOnFoot/app/src/main/res/layout/layout_map.xml" value="0.19610507246376813" />
+        <entry key="..\:/git/glof/app/src/main/res/drawable/ic_directions_run_black_24dp.xml" value="0.15925925925925927" />
+        <entry key="..\:/git/glof/app/src/main/res/drawable/ic_pause_black_24dp.xml" value="0.30104166666666665" />
       </map>
     </option>
   </component>
