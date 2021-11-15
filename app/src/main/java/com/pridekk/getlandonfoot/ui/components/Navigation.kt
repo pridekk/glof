@@ -31,7 +31,7 @@ import timber.log.Timber
 @Composable
 fun Navigation(
     logout: () -> Unit,
-    fusedLocationClient: FusedLocationProviderClient
+    fusedLocationClient: FusedLocationProviderClient,
 ) {
 
     val navController = rememberNavController()
@@ -74,7 +74,7 @@ fun Navigation(
         NavHost(navController = navController, startDestination = "main" ){
 
             composable(Screen.Main.route){
-                Main(navController = navController, ::trackingLocation)
+                Main(navController = navController, ::trackingLocation, fusedLocationClient)
             }
             composable(Screen.Profile.route){
                 Profile(navController = navController, logout)

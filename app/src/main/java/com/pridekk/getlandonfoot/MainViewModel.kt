@@ -1,6 +1,8 @@
 package com.pridekk.getlandonfoot
 
 
+import android.content.Intent
+import android.os.Build
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.ViewModel
@@ -8,6 +10,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.pridekk.getlandonfoot.repository.GlofRepository
 import com.pridekk.getlandonfoot.repository.SpecRepository
+import com.pridekk.getlandonfoot.services.TrackingService
+import com.pridekk.getlandonfoot.utils.Constants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -93,17 +97,13 @@ class MainViewModel @Inject constructor(
 
                 }
             }
-
-
-
-
-
         }
     }
 
     fun logout() = viewModelScope.launch {
         mAuth.signOut()
         _loginUiState.value = LoginUiState.Empty
+
     }
 
 

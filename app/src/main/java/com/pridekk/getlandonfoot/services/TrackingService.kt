@@ -108,7 +108,6 @@ class TrackingService : LifecycleService() {
 
             when (it.action) {
                 ACTION_START_OR_RESUME_SERVICE -> {
-
                     if (isFirstRun) {
                         startForegroundService()
                         isFirstRun = false

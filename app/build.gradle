@@ -105,7 +105,7 @@ dependencies {
 
     // compose permissions
     implementation "com.google.accompanist:accompanist-permissions:0.21.2-beta"
-
+    implementation 'androidx.compose.runtime:runtime-livedata:1.1.0-beta02'
 }
 
 kapt {
