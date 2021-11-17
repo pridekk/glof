@@ -1,29 +1,19 @@
 package com.pridekk.getlandonfoot
 
-
-import android.content.Intent
-import android.os.Build
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.pridekk.getlandonfoot.repository.GlofRepository
 import com.pridekk.getlandonfoot.repository.SpecRepository
-import com.pridekk.getlandonfoot.services.TrackingService
-import com.pridekk.getlandonfoot.utils.Constants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.lang.Exception
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,19 +24,18 @@ class MainViewModel @Inject constructor(
 ): ViewModel(), LifecycleObserver {
 
     private var mAuth = FirebaseAuth.getInstance()
-    private val _loginUiState = MutableStateFlow<LoginUiState>(LoginUiState.Empty)
-    val loginUiState: StateFlow<LoginUiState> get() = _loginUiState
+
+    var loggedIn = MutableLiveData<Boolean>(false)
 
     var token by mutableStateOf("")
             private set
 
-    private val _error = MutableStateFlow<String>("")
-    val error: StateFlow<String> get() = _error
+    var error by mutableStateOf("")
 
     init {
         val user = mAuth.currentUser
         if(user != null){
-            _loginUiState.value = LoginUiState.Success
+            loggedIn.value = true
             viewModelScope.launch {
 
                 val task = user.getIdToken(false)
@@ -68,7 +57,7 @@ class MainViewModel @Inject constructor(
         val user = mAuth.currentUser
         var idToken: String? = null
         if(user != null){
-           _loginUiState.value = LoginUiState.Success
+           loggedIn.value = true
 
            user.getIdToken(true).let { task ->
                if (task.isSuccessful) {
@@ -86,18 +75,19 @@ class MainViewModel @Inject constructor(
            }
 
         } else {
-            _loginUiState.value = LoginUiState.Loading
+
             val task = mAuth.signInWithEmailAndPassword(email,password)
             task.addOnCompleteListener {
                 if (it.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
                     Timber.d("loginUserWithEmail:success")
-                    _loginUiState.value = LoginUiState.Success
+                    loggedIn.value = true
                 } else {
                     // If sign in fails, display a message to the user.
                     Timber.d("loginUserWithEmail:failure", it.exception)
-                    _loginUiState.value = LoginUiState.Error(it.exception.toString())
-
+                    it?.exception?.message?.let { errorMessage ->
+                        error = errorMessage
+                    }
                 }
             }
         }
@@ -105,23 +95,8 @@ class MainViewModel @Inject constructor(
 
     fun logout() = viewModelScope.launch {
         mAuth.signOut()
-        _loginUiState.value = LoginUiState.Empty
+        loggedIn.value = false
 
     }
 
-
-    private fun handleError(exception: Throwable){
-        _error.value = exception.message.toString()
-    }
-
-    fun setLoginUiState(loginState: MainViewModel.LoginUiState) {
-        _loginUiState.value = loginState
-    }
-
-    sealed class LoginUiState {
-        object Success: LoginUiState()
-        data class Error(val message: String): LoginUiState()
-        object Loading: LoginUiState()
-        object Empty: LoginUiState()
-    }
 }

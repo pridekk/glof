@@ -83,14 +83,14 @@ fun Login(
         }) {
             Text(text = "로그인")
         }
-        if (viewModel?.loginUiState?.value is MainViewModel.LoginUiState.Error ){
+        if (viewModel?.error?.isNotBlank() == true){
             val context = LocalContext.current
             Toast.makeText(
                 context,
-                viewModel.loginUiState.value.toString(),
+                viewModel.error.toString(),
                 Toast.LENGTH_LONG
             ).show()
-            viewModel.setLoginUiState(MainViewModel.LoginUiState.Empty)
+            viewModel.error = ""
 
         }
     }

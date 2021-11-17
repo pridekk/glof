@@ -25,10 +25,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.pridekk.getlandonfoot.ui.viewmodels.ProfileViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import com.pridekk.getlandonfoot.R
+import kotlin.math.log
+
 @ExperimentalCoroutinesApi
 @Composable
 fun Profile(
     firebaseToken: String,
+    isTracking: Boolean?,
+    toggleTracking: () -> Unit,
     logout: () -> Unit,
 ){
 
@@ -38,45 +42,70 @@ fun Profile(
             .fillMaxSize()
             .padding(10.dp)
     ) {
-        Card() {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = 3.dp
+        ) {
             Row(modifier = Modifier
-                .wrapContentSize()
+                .fillMaxWidth()
                 .clip(RoundedCornerShape(4.dp))
                 .background(color = MaterialTheme.colors.background)
-                .padding(16.dp)){
-                Column(){
+                .padding(16.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
                     Image(
-                        painter = painterResource(R.drawable.profile_pic),
+                        painter = painterResource(R.drawable.img_default_profile),
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(48.dp),
+                        modifier = Modifier.size(100.dp),
                         contentDescription = "Profile picture holder"
                     )
+                    Text("Pridekk")
+
                 }
                 Column(
                     modifier = Modifier
-                        .fillMaxHeight()
+                        .weight(3f)
                         .padding(start = 8.dp),
                     verticalArrangement = Arrangement.aligned(Alignment.CenterVertically)
                 ){
-                    Text("Catalin Ghita", fontWeight = FontWeight.Bold)
-                    Text(
-                        text = "Active now",
-                        style = MaterialTheme.typography.body2
-                    )
+                    MyStat(statName = "보유영역", statValue = "11")
+                    MyStat(statName = "랜드마크", statValue = "3" )
+                    MyStat(statName = "보유도토리", statValue = "124")
+                    MyStat(statName = "순위", statValue = "1")
                 }
             }
         }
-        Text(text = "Token")
-        Spacer(modifier = Modifier.width(5.dp))
-        Text(text = firebaseToken)
-        Spacer(modifier = Modifier.width(5.dp))
-        Button(onClick = {
-            logout()
+        Row(){
+            MyStat(statName = "Token", statValue = firebaseToken.take(10))
         }
-        ) {
-            Text(text = "로그아웃")
+        Card(
+            modifier = Modifier.fillMaxHeight(0.5f)
+        ){
 
         }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ){
+            Button(
+                onClick = toggleTracking
+            ) {
+                if(isTracking == true){
+                    Text(text = "Stop GLOF")
+                } else {
+                    Text(text = "Start GLOF")
+                }
+
+            }
+
+        }
+
     }
 
 }
@@ -84,5 +113,30 @@ fun Profile(
 @Preview
 @Composable
 fun ProfilePreview(){
-    Profile(firebaseToken = "test") {}
+    Profile(
+        firebaseToken = "test",
+        isTracking = false,
+        toggleTracking = {}
+    ) {}
+}
+
+@Composable
+fun MyStat(
+    statName: String,
+    statValue: String
+){
+    Row(
+        modifier = Modifier.padding(2.dp)
+    ){
+        Text(
+            modifier = Modifier.weight(2f),
+            style = MaterialTheme.typography.body2,
+            text=statName
+        )
+        Text(
+            modifier = Modifier.weight(4f),
+            text=statValue
+        )
+    }
+
 }

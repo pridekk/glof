@@ -9,9 +9,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.res.stringResource
 import androidx.core.app.ActivityCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -25,6 +27,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.pridekk.getlandonfoot.MainViewModel
+import com.pridekk.getlandonfoot.services.TrackingService
 import com.pridekk.getlandonfoot.utils.Screen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import timber.log.Timber
@@ -33,11 +36,14 @@ import timber.log.Timber
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun Navigation(
+    isTracking: MutableLiveData<Boolean>,
+    toggleTracking: () -> Unit,
     logout: () -> Unit,
     fusedLocationClient: FusedLocationProviderClient,
     viewModel: MainViewModel = hiltViewModel()
 ) {
 
+    var trackingState = isTracking.observeAsState()
     val navController = rememberNavController()
     val items = listOf(
         Screen.Profile,
@@ -82,7 +88,7 @@ fun Navigation(
                 Main(viewModel.token, ::trackingLocation, fusedLocationClient)
             }
             composable(Screen.Profile.route){
-                Profile(viewModel.token, logout)
+                Profile(viewModel.token, trackingState.value, toggleTracking, logout)
             }
             composable(Screen.Market.route){
                 Market()
@@ -90,11 +96,7 @@ fun Navigation(
             composable(Screen.Map.route){
                 MyMap(){ googleMap ->
                     val sydney = LatLng(-33.852, 151.211)
-                    googleMap.addMarker(
-                        MarkerOptions()
-                            .position(sydney)
-                            .title("Marker in Sydney")
-                    )
+
                     googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
                 }
             }

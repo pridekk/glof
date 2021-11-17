@@ -1,30 +1,20 @@
 package com.pridekk.getlandonfoot.ui.components
 
-import android.content.Intent
-import android.location.Location
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.Card
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.navigation.NavController
-import com.google.accompanist.permissions.*
-import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
 import timber.log.Timber
-import java.lang.IllegalStateException
 
 
 @ExperimentalPermissionsApi

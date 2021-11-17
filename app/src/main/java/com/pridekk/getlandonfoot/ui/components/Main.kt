@@ -55,11 +55,8 @@ import timber.log.Timber
 fun Main(
     firebaseToken: String,
     onClickListener: (Context) -> Unit,
-    fusedLocationClient: FusedLocationProviderClient,
-    profileViewModel: ProfileViewModel = hiltViewModel()
+    fusedLocationClient: FusedLocationProviderClient
 ){
-
-
 
     val permissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
