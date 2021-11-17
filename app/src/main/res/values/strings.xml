@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">GetLandOnFoot</string>
-    <string name="profile">profile</string>
+    <string name="profile">My</string>
     <string name="main">main</string>
     <string name="map">map</string>
+    <string name="market">Market</string>
 
 </resources>

@@ -53,11 +53,12 @@ import timber.log.Timber
 @ExperimentalPermissionsApi
 @Composable
 fun Main(
-    navController: NavController,
+    firebaseToken: String,
     onClickListener: (Context) -> Unit,
     fusedLocationClient: FusedLocationProviderClient,
     profileViewModel: ProfileViewModel = hiltViewModel()
 ){
+
 
 
     val permissionsState = rememberMultiplePermissionsState(
@@ -150,7 +151,7 @@ fun Main(
                         if (isTracking.value == true) {
                             Intent(context, TrackingService::class.java).also {
                                 it.action = ACTION_STOP_SERVICE
-                                it.putExtra("TOKEN", profileViewModel.getToken() )
+                                it.putExtra("TOKEN", firebaseToken )
                                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
                                     context.startForegroundService(it)
                                 } else {
@@ -162,7 +163,7 @@ fun Main(
                         } else {
                             Intent(context, TrackingService::class.java).also {
                                 it.action = ACTION_START_OR_RESUME_SERVICE
-                                it.putExtra("TOKEN", profileViewModel.getToken() )
+                                it.putExtra("TOKEN", firebaseToken )
 
                                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
                                     context.startForegroundService(it)

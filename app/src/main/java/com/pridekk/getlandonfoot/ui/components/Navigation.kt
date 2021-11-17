@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -24,21 +24,26 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.pridekk.getlandonfoot.Screen
+import com.pridekk.getlandonfoot.MainViewModel
+import com.pridekk.getlandonfoot.utils.Screen
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import timber.log.Timber
 
+@ExperimentalCoroutinesApi
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun Navigation(
     logout: () -> Unit,
     fusedLocationClient: FusedLocationProviderClient,
+    viewModel: MainViewModel = hiltViewModel()
 ) {
 
     val navController = rememberNavController()
     val items = listOf(
         Screen.Profile,
         Screen.Main,
-        Screen.Map
+        Screen.Market,
+        Screen.Map,
     )
     Scaffold(
         bottomBar = {
@@ -71,13 +76,16 @@ fun Navigation(
         }
     ){
 
-        NavHost(navController = navController, startDestination = "main" ){
+        NavHost(navController = navController, startDestination = "profile" ){
 
             composable(Screen.Main.route){
-                Main(navController = navController, ::trackingLocation, fusedLocationClient)
+                Main(viewModel.token, ::trackingLocation, fusedLocationClient)
             }
             composable(Screen.Profile.route){
-                Profile(navController = navController, logout)
+                Profile(viewModel.token, logout)
+            }
+            composable(Screen.Market.route){
+                Market()
             }
             composable(Screen.Map.route){
                 MyMap(){ googleMap ->

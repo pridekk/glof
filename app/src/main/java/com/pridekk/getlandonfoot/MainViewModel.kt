@@ -3,6 +3,9 @@ package com.pridekk.getlandonfoot
 
 import android.content.Intent
 import android.os.Build
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.ViewModel
@@ -34,8 +37,8 @@ class MainViewModel @Inject constructor(
     private val _loginUiState = MutableStateFlow<LoginUiState>(LoginUiState.Empty)
     val loginUiState: StateFlow<LoginUiState> get() = _loginUiState
 
-    private val _token = MutableStateFlow("")
-    val token: StateFlow<String> get() = _token
+    var token by mutableStateOf("")
+            private set
 
     private val _error = MutableStateFlow<String>("")
     val error: StateFlow<String> get() = _error
@@ -48,9 +51,9 @@ class MainViewModel @Inject constructor(
 
                 val task = user.getIdToken(false)
                 if (task.isSuccessful) {
-                    _token.value = task.result.token.toString()
+                    token = task.result.token.toString()
 
-                    val result = glofRepository.getArea(token.value)
+                    val result = glofRepository.getArea(token)
                     Timber.d(result.data?.message)
 
                 } else {
@@ -70,7 +73,7 @@ class MainViewModel @Inject constructor(
            user.getIdToken(true).let { task ->
                if (task.isSuccessful) {
                    idToken = task.result.token
-                   _token.value = task.result.token.toString()
+                   token = task.result.token.toString()
                    Timber.d("1idToken ${idToken}")
                    idToken?.let {
                        val result = glofRepository.getArea(it)
