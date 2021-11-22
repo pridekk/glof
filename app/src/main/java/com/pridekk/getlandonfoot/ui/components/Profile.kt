@@ -1,5 +1,7 @@
 package com.pridekk.getlandonfoot.ui.components
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.ThemedSpinnerAdapter
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -9,12 +11,11 @@ import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -25,8 +26,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.pridekk.getlandonfoot.ui.viewmodels.ProfileViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import com.pridekk.getlandonfoot.R
+import kotlinx.coroutines.delay
+import java.time.LocalDateTime
+import kotlin.collections.mutableSetOf
 import kotlin.math.log
+import kotlin.time.Duration
 
+@RequiresApi(Build.VERSION_CODES.O)
 @ExperimentalCoroutinesApi
 @Composable
 fun Profile(
@@ -36,6 +42,28 @@ fun Profile(
     logout: () -> Unit,
 ){
 
+    var trackingTime by remember {
+        mutableStateOf(0L)
+    }
+
+    var trackingStarted: LocalDateTime? by rememberSaveable {
+        mutableStateOf(null)
+    }
+    LaunchedEffect(key1 = isTracking, key2 = trackingTime, key3 = trackingStarted){
+        if(isTracking == true){
+            delay(1000L)
+            var currentTime = LocalDateTime.now()
+            if(trackingStarted == null){
+                trackingStarted = LocalDateTime.now()
+            }else{
+                java.time.Duration.between(trackingStarted, currentTime).also {
+                    trackingTime = it.seconds
+                }
+            }
+        } else {
+            trackingStarted = null
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -84,10 +112,21 @@ fun Profile(
         Row(){
             MyStat(statName = "Token", statValue = firebaseToken.take(10))
         }
-        Card(
-            modifier = Modifier.fillMaxHeight(0.5f)
+        Column(
+
+            modifier = Modifier
+                .fillMaxHeight(0.5f)
+                .fillMaxWidth(1f)
+                .padding(10.dp)
+                .background(MaterialTheme.colors.background),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+
         ){
 
+            if(isTracking == true){
+                MyStat(statName = "추적시간", statValue = trackingTime.toString())
+            }
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -98,24 +137,23 @@ fun Profile(
             ) {
                 if(isTracking == true){
                     Text(text = "Stop GLOF")
+
                 } else {
                     Text(text = "Start GLOF")
+                    trackingTime = 0L
                 }
-
             }
-
         }
-
     }
-
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview
 @Composable
 fun ProfilePreview(){
     Profile(
         firebaseToken = "test",
-        isTracking = false,
+        isTracking = true,
         toggleTracking = {}
     ) {}
 }
