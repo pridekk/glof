@@ -1,19 +1,24 @@
 package com.pridekk.getlandonfoot
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.location.Location
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.pridekk.getlandonfoot.services.TrackingService
@@ -22,7 +27,10 @@ import com.pridekk.getlandonfoot.ui.components.Navigation
 import com.pridekk.getlandonfoot.ui.theme.GetLandOnFootTheme
 import com.pridekk.getlandonfoot.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -36,12 +44,28 @@ class MainActivity : ComponentActivity(){
     private var isTracking = MutableLiveData<Boolean>(false)
 
     private var loggedIn = MutableLiveData<Boolean>(false)
+
+
+
+    @SuppressLint("MissingPermission")
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
 
+//        viewModel.viewModelScope.launch {
+//            val task = fusedLocationClient.lastLocation
+//            if(task.isSuccessful){
+//                viewModel.lastLocation.value = task.result
+//            }
+//        }
+
+        val locationObserver = Observer<Location> {
+            Timber.d("Location Changed to $it")
+            viewModel.lastLocation.value = it
+        }
         val trackingObserver = Observer<Boolean> {
             Timber.d("Tracking value Changed to $it")
             isTracking.value = it
@@ -75,6 +99,7 @@ class MainActivity : ComponentActivity(){
         }
         TrackingService.isTracking.observe(this, trackingObserver)
         viewModel.loggedIn.observe(this,loginObserver)
+//        viewModel.lastLocation.observe(this,locationObserver)
 
 
     }

@@ -1,5 +1,6 @@
 package com.pridekk.getlandonfoot
 
+import android.location.Location
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -7,6 +8,7 @@ import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.firebase.auth.FirebaseAuth
 import com.pridekk.getlandonfoot.repository.GlofRepository
 import com.pridekk.getlandonfoot.repository.SpecRepository
@@ -31,6 +33,8 @@ class MainViewModel @Inject constructor(
             private set
 
     var error by mutableStateOf("")
+
+    var lastLocation = MutableLiveData<Location>(null)
 
     init {
         val user = mAuth.currentUser

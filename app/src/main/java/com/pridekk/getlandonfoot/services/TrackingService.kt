@@ -188,22 +188,31 @@ class TrackingService : LifecycleService() {
      */
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult?) {
-            Timber.d("location added")
+
             super.onLocationResult(result)
             if (isTracking.value!!) {
                 result?.locations?.let { locations ->
-                    for (location in locations) {
 
+
+                    for (location in locations) {
                         addPathPoint(location)
-                        Timber.d("token: ${token.value}")
+
 
                     }
                     val requestBody = locations.map { it -> MyLocation(it.latitude, it.longitude, it.speed) }
-                    token.value?.let {
-                        lifecycleScope.launch {
-                            glofRepository.postLocations(it, requestBody)
+                        .filter {
+                            it.speed > 0.0
                         }
+                    if(requestBody.isNotEmpty() && token.value?.isNotEmpty() == true){
+
+                        lifecycleScope.launch {
+                            Timber.d("location added")
+                            Timber.d("token: ${token.value}")
+                            glofRepository.postLocations(token.value!!, requestBody)
+                        }
+
                     }
+
                 }
             }
         }

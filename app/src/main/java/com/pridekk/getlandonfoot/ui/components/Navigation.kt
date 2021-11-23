@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -32,6 +34,7 @@ import com.pridekk.getlandonfoot.utils.Screen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import timber.log.Timber
 
+@RequiresApi(Build.VERSION_CODES.O)
 @ExperimentalCoroutinesApi
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -88,7 +91,7 @@ fun Navigation(
                 Main(viewModel.token, ::trackingLocation, fusedLocationClient)
             }
             composable(Screen.Profile.route){
-                Profile(viewModel.token, trackingState.value, toggleTracking, logout)
+                Profile(viewModel.token, trackingState.value, toggleTracking, fusedLocationClient, logout)
             }
             composable(Screen.Market.route){
                 Market()
