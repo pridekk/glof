@@ -62,6 +62,7 @@ class TrackingService : LifecycleService() {
         val timeRunInMillis = MutableLiveData<Long>()
         val isTracking = MutableLiveData<Boolean>()
         val pathPoints = MutableLiveData<Polylines>()
+        val lastLocation = MutableLiveData<Location?>()
     }
 
     /**
@@ -193,11 +194,8 @@ class TrackingService : LifecycleService() {
             if (isTracking.value!!) {
                 result?.locations?.let { locations ->
 
-
                     for (location in locations) {
                         addPathPoint(location)
-
-
                     }
                     val requestBody = locations.map { it -> MyLocation(it.latitude, it.longitude, it.speed) }
                         .filter {
@@ -209,6 +207,19 @@ class TrackingService : LifecycleService() {
                             Timber.d("location added")
                             Timber.d("token: ${token.value}")
                             glofRepository.postLocations(token.value!!, requestBody)
+
+                            requestBody.last().let {
+                                var location = Location("dummy")
+
+                                if(lastLocation?.value?.latitude  != it.latitude && lastLocation?.value?.longitude != it.longitude){
+                                    Timber.d("location change")
+                                    Timber.d("token: ${token.value}")
+                                    location.latitude = it.latitude
+                                    location.longitude = it.longitude
+                                    lastLocation.value = location
+                                }
+
+                            }
                         }
 
                     }

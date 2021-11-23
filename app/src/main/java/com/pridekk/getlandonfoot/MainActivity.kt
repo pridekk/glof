@@ -39,30 +39,18 @@ class MainActivity : ComponentActivity(){
 
     private val viewModel by viewModels<MainViewModel>()
 
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-
     private var isTracking = MutableLiveData<Boolean>(false)
 
     private var loggedIn = MutableLiveData<Boolean>(false)
 
-
+    private var lastLocation = MutableLiveData<Location?>(null)
 
     @SuppressLint("MissingPermission")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
-
-//        viewModel.viewModelScope.launch {
-//            val task = fusedLocationClient.lastLocation
-//            if(task.isSuccessful){
-//                viewModel.lastLocation.value = task.result
-//            }
-//        }
-
-        val locationObserver = Observer<Location> {
+        val locationObserver = Observer<Location?> {
             Timber.d("Location Changed to $it")
             viewModel.lastLocation.value = it
         }
@@ -80,9 +68,9 @@ class MainActivity : ComponentActivity(){
                         Surface(color = MaterialTheme.colors.background) {
                             Navigation(
                                 isTracking,
+                                lastLocation,
                                 ::toggleTrackingService,
-                                ::logout,
-                                fusedLocationClient
+                                ::logout
                             )
                         }
                     }
@@ -98,10 +86,8 @@ class MainActivity : ComponentActivity(){
             }
         }
         TrackingService.isTracking.observe(this, trackingObserver)
+        TrackingService.lastLocation.observe(this,locationObserver)
         viewModel.loggedIn.observe(this,loginObserver)
-//        viewModel.lastLocation.observe(this,locationObserver)
-
-
     }
 
     private fun logout(){

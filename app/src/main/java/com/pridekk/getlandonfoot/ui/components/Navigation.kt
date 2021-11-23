@@ -27,9 +27,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import com.pridekk.getlandonfoot.MainViewModel
-import com.pridekk.getlandonfoot.services.TrackingService
 import com.pridekk.getlandonfoot.utils.Screen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import timber.log.Timber
@@ -40,13 +38,14 @@ import timber.log.Timber
 @Composable
 fun Navigation(
     isTracking: MutableLiveData<Boolean>,
+    lastLocation: MutableLiveData<Location?>,
     toggleTracking: () -> Unit,
     logout: () -> Unit,
-    fusedLocationClient: FusedLocationProviderClient,
     viewModel: MainViewModel = hiltViewModel()
 ) {
 
-    var trackingState = isTracking.observeAsState()
+    val trackingState = isTracking.observeAsState()
+    val lastLocationState = viewModel.lastLocation.observeAsState()
     val navController = rememberNavController()
     val items = listOf(
         Screen.Profile,
@@ -86,18 +85,18 @@ fun Navigation(
     ){
 
         NavHost(navController = navController, startDestination = "profile" ){
-
             composable(Screen.Main.route){
-                Main(viewModel.token, ::trackingLocation, fusedLocationClient)
+                Text("main")
             }
+
             composable(Screen.Profile.route){
-                Profile(viewModel.token, trackingState.value, toggleTracking, fusedLocationClient, logout)
+                Profile(viewModel.token, trackingState.value, toggleTracking, lastLocationState.value, logout)
             }
             composable(Screen.Market.route){
                 Market()
             }
             composable(Screen.Map.route){
-                MyMap(){ googleMap ->
+                MyMap(null){ googleMap ->
                     val sydney = LatLng(-33.852, 151.211)
 
                     googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));

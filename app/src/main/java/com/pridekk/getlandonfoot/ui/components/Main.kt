@@ -98,7 +98,7 @@ fun Main(
         val coroutineScope = rememberCoroutineScope()
         val defaultLocation = LatLng(-33.8523341, 151.2106085)
         val DEFAULT_ZOOM = 15
-        MyMap(
+        MyMap(null,
         ){ googleMap ->
 
             coroutineScope.launch {

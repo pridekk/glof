@@ -1,12 +1,9 @@
 package com.pridekk.getlandonfoot.ui.components
 
-import android.Manifest
 import android.annotation.SuppressLint
-import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.appcompat.widget.ThemedSpinnerAdapter
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,35 +13,30 @@ import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role.Companion.Image
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.app.ActivityCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.pridekk.getlandonfoot.ui.viewmodels.ProfileViewModel
+import com.pridekk.getlandonfoot.MainViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import com.pridekk.getlandonfoot.R
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.LocalDateTime
-import kotlin.collections.mutableSetOf
-import kotlin.math.log
-import kotlin.time.Duration
 
 @SuppressLint("MissingPermission")
 @ExperimentalPermissionsApi
@@ -55,23 +47,20 @@ fun Profile(
     firebaseToken: String,
     isTracking: Boolean?,
     toggleTracking: () -> Unit,
-    fusedLocationClient: FusedLocationProviderClient?,
-    logout: () -> Unit,
+    lastLocation: Location?,
+    logout: () -> Unit
+
 ){
+    Timber.d("Recompose Profile: $lastLocation")
 
     var trackingTime by remember {
         mutableStateOf(0L)
     }
 
-    val localContext = LocalContext.current
-
     var trackingStarted: LocalDateTime? by rememberSaveable {
         mutableStateOf(null)
     }
 
-    var lastKnownLocation: Location? by remember {
-        mutableStateOf(null)
-    }
     LaunchedEffect(key1 = isTracking, key2 = trackingTime, key3 = trackingStarted){
         if(isTracking == true){
             delay(1000L)
@@ -81,16 +70,6 @@ fun Profile(
             }else{
                 java.time.Duration.between(trackingStarted, currentTime).also {
                     trackingTime = it.seconds
-                    val task = fusedLocationClient?.lastLocation
-                    task?.isSuccessful.let {
-
-                        if(it == true){
-                            lastKnownLocation = task!!.result
-                        }
-
-                    }
-
-
                 }
             }
         } else {
@@ -157,35 +136,11 @@ fun Profile(
 
         ){
             val coroutineScope = rememberCoroutineScope()
-            val defaultLocation = LatLng(-33.8523341, 151.2106085)
             val DEFAULT_ZOOM = 15
 
             if(isTracking == true){
                 MyStat(statName = "추적시간", statValue = trackingTime.toString())
-                MyMap(
-                ){ googleMap ->
-
-                    coroutineScope.launch {
-
-                        lastKnownLocation?.let {
-                            val myLocation = LatLng(it.longitude, it.longitude)
-                            Timber.d(myLocation.toString())
-                            googleMap.addMarker(
-                                MarkerOptions()
-                                    .position(myLocation)
-                                    .title("Your Position")
-
-                            )
-                            googleMap.moveCamera(
-                                CameraUpdateFactory.newLatLngZoom(
-                                    LatLng(
-                                        it.latitude,
-                                        it.longitude), DEFAULT_ZOOM.toFloat()))
-                            googleMap.uiSettings.isMyLocationButtonEnabled = true
-                        }
-
-                    }
-                }
+                MyMap(lastLocation){}
             }
         }
         Row(
@@ -207,16 +162,21 @@ fun Profile(
     }
 }
 
+@ExperimentalCoroutinesApi
 @ExperimentalPermissionsApi
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview
 @Composable
 fun ProfilePreview(){
+    val location = Location("dummy" )
+    location.longitude = 22.1
+    location.altitude = 22.2
+
     Profile(
         firebaseToken = "test",
         isTracking = true,
         toggleTracking = {},
-        null
+        location
     ) {}
 }
 
