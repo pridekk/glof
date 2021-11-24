@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity(){
 
         val locationObserver = Observer<Location?> {
             Timber.d("Location Changed to $it")
-            viewModel.lastLocation.value = it
+            viewModel.lastLocations.value?.add(it)
         }
         val trackingObserver = Observer<Boolean> {
             Timber.d("Tracking value Changed to $it")
@@ -68,7 +68,6 @@ class MainActivity : ComponentActivity(){
                         Surface(color = MaterialTheme.colors.background) {
                             Navigation(
                                 isTracking,
-                                lastLocation,
                                 ::toggleTrackingService,
                                 ::logout
                             )

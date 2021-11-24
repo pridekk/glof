@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
@@ -17,8 +18,10 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.pridekk.getlandonfoot.R
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -26,7 +29,7 @@ import timber.log.Timber
 @ExperimentalPermissionsApi
 @Composable
 fun MyMap(
-    lastLocation: Location?,
+    lastLocations: MutableList<Location>?,
     onReady: (GoogleMap) -> Unit
 ){
 
@@ -48,51 +51,51 @@ fun MyMap(
             mapView.apply {
                 mapView.getMapAsync { googleMap ->
 
-                    Timber.d("Init Map: $lastLocation")
+                    Timber.d("Init Map: $lastLocations")
                     coroutineScope.launch {
-                        Timber.d("Set Marker: $lastLocation")
-                        lastLocation?.let {
-                            val myLocation = LatLng(it.longitude, it.longitude)
-                            Timber.d(myLocation.toString())
-                            googleMap.addMarker(
-                                MarkerOptions()
-                                    .position(myLocation)
-                                    .title("Your Position")
-
-                            )
+                        Timber.d("Set Marker: $lastLocations")
+                        if(lastLocations?.isNotEmpty() == true){
+                            lastLocations.forEach {
+                                val myLocation = LatLng(it.latitude, it.longitude)
+                                var circleOptions = CircleOptions()
+                                    .center(myLocation)
+                                    .fillColor(R.color.maps_qu_google_blue_500)
+                                    .visible(true)
+                                    .radius(3.0)
+                                googleMap.addCircle(circleOptions)
+                            }
                             googleMap.moveCamera(
                                 CameraUpdateFactory.newLatLngZoom(
-                                    LatLng(
-                                        it.latitude,
-                                        it.longitude), DEFAULT_ZOOM.toFloat()))
-                            googleMap.uiSettings.isMyLocationButtonEnabled = true
+                                    LatLng(lastLocations.last().latitude, lastLocations.last().longitude), 10F
+                            ))
                         }
-
                     }
                 }
             }
         },
         update = {
             mapView.getMapAsync { googleMap ->
-
-                Timber.d("ReDraw Map: $lastLocation")
+                Timber.d("ReDraw Map: $lastLocations")
                 coroutineScope.launch {
-                    Timber.d("Set Marker: $lastLocation")
-                    lastLocation?.let {
-                        val myLocation = LatLng(it.longitude, it.longitude)
-                        Timber.d(myLocation.toString())
-                        googleMap.addMarker(
-                            MarkerOptions()
-                                .position(myLocation)
-                                .title("Your Position")
+                    Timber.d("Set Marker: $lastLocations")
+                    if(lastLocations?.isNotEmpty() == true) {
+                        lastLocations.let {
+                            val myLocation = LatLng(it.last().latitude, it.last().longitude)
+                            Timber.d(myLocation.toString())
 
-                        )
-                        googleMap.moveCamera(
-                            CameraUpdateFactory.newLatLngZoom(
-                                LatLng(
-                                    it.latitude,
-                                    it.longitude), DEFAULT_ZOOM.toFloat()))
-                        googleMap.uiSettings.isMyLocationButtonEnabled = true
+                            var circleOptions = CircleOptions()
+                                .center(myLocation)
+                                .fillColor(R.color.maps_qu_google_blue_500)
+                                .visible(true)
+                                .radius(3.0)
+                            googleMap.addCircle(circleOptions)
+                            googleMap.moveCamera(
+                                CameraUpdateFactory.newLatLngZoom(
+                                    myLocation, DEFAULT_ZOOM.toFloat()
+                                )
+                            )
+                            googleMap.uiSettings.isMyLocationButtonEnabled = true
+                        }
                     }
 
                 }

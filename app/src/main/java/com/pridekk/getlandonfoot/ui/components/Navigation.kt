@@ -38,14 +38,13 @@ import timber.log.Timber
 @Composable
 fun Navigation(
     isTracking: MutableLiveData<Boolean>,
-    lastLocation: MutableLiveData<Location?>,
     toggleTracking: () -> Unit,
     logout: () -> Unit,
     viewModel: MainViewModel = hiltViewModel()
 ) {
 
     val trackingState = isTracking.observeAsState()
-    val lastLocationState = viewModel.lastLocation.observeAsState()
+    val lastLocationState = viewModel.lastLocations.observeAsState()
     val navController = rememberNavController()
     val items = listOf(
         Screen.Profile,

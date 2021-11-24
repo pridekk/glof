@@ -34,9 +34,11 @@ class MainViewModel @Inject constructor(
 
     var error by mutableStateOf("")
 
-    var lastLocation = MutableLiveData<Location?>(null)
+    var lastLocations = MutableLiveData<MutableList<Location>>(null)
 
     init {
+
+        lastLocations.value = mutableListOf()
         val user = mAuth.currentUser
         if(user != null){
             loggedIn.value = true

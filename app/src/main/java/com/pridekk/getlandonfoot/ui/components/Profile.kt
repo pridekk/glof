@@ -47,11 +47,11 @@ fun Profile(
     firebaseToken: String,
     isTracking: Boolean?,
     toggleTracking: () -> Unit,
-    lastLocation: Location?,
+    lastLocations: MutableList<Location>?,
     logout: () -> Unit
 
 ){
-    Timber.d("Recompose Profile: $lastLocation")
+    Timber.d("Recompose Profile: $lastLocations")
 
     var trackingTime by remember {
         mutableStateOf(0L)
@@ -140,7 +140,11 @@ fun Profile(
 
             if(isTracking == true){
                 MyStat(statName = "추적시간", statValue = trackingTime.toString())
-                MyMap(lastLocation){}
+                MyMap(lastLocations){}
+            } else {
+                if(lastLocations?.isNotEmpty() == true){
+                    MyMap(lastLocations){}
+                }
             }
         }
         Row(
@@ -176,7 +180,7 @@ fun ProfilePreview(){
         firebaseToken = "test",
         isTracking = true,
         toggleTracking = {},
-        location
+        mutableListOf(location)
     ) {}
 }
 
